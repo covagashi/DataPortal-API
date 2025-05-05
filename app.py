@@ -8,7 +8,7 @@ BASE_URL = "https://dataportal.eplan.com/api"
 def get_pat():
     pat = os.environ.get('EPLAN_PAT')
     if not pat:
-        pat = "D2FE459B3F31C0296C76344D6BAB4A1AB63329DC74817BE4F353F2E1C08B69A5-1"
+        pat = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     return pat
 
 def make_api_request(url, pat, method='GET', data=None):
