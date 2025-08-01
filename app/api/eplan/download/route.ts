@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { EplanClient, EplanApiError } from '@/lib/services/eplan-client';
 import { E3DParser } from '@/lib/parsers/e3d-parser';
 import { STLConverter } from '@/lib/parsers/stl-converter';
-import { FileValidator } from '@/lib/services/eplan-client';
+import { FileValidator } from '@/lib/services/file-validator';
 
 export async function POST(request: NextRequest) {
   try {
