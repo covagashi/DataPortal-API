@@ -7,8 +7,8 @@ import { FileValidator } from '@/lib/services/file-validator';
 
 export async function POST(request: NextRequest) {
   try {
-    const { partNumber, pat, format = 'ascii' } = await request.json();
-    const finalPat = pat || process.env.EPLAN_DEFAULT_PAT;
+    const { partNumber } = await request.json();
+    const finalPat = process.env.EPLAN_DEFAULT_PAT;
 
     // Validate inputs
     const partValidation = EplanClient.validatePartNumber(partNumber);
@@ -19,11 +19,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!finalPat) {
+      return NextResponse.json(
+        { error: 'EPLAN PAT not configured in environment variables' },
+        { status: 500 }
+      );
+    }
+
     const patValidation = EplanClient.validatePAT(finalPat);
     if (!patValidation.isValid) {
       return NextResponse.json(
-        { error: patValidation.error },
-        { status: 400 }
+        { error: 'Invalid EPLAN PAT configuration' },
+        { status: 500 }
       );
     }
 
@@ -44,24 +51,13 @@ export async function POST(request: NextRequest) {
     const parser = new E3DParser(buffer);
     const sceneData = parser.loadSceneData();
 
-    // Generate output based on format
-    const filename = FileValidator.sanitizeFilename(`${partNumber}.stl`);
-    let content: string | Buffer;
-    let contentType: string;
-
-    if (format === 'binary') {
-      const stlData = STLConverter.convertToSTLData(sceneData);
-      content = STLConverter.generateBinarySTL(stlData);
-      contentType = 'application/octet-stream';
-    } else {
-      content = STLConverter.convertE3DtoSTL(sceneData);
-      contentType = 'text/plain';
-    }
-
-    // Get STL statistics for headers
+    // Generate binary STL output
     const stlData = STLConverter.convertToSTLData(sceneData);
-    const validation = STLConverter.validateSTLData(stlData);
+    const content = STLConverter.generateBinarySTL(stlData);
+    const filename = FileValidator.sanitizeFilename(`${partNumber}.stl`);
 
+    // Validate STL data
+    const validation = STLConverter.validateSTLData(stlData);
     if (!validation.isValid) {
       console.warn('STL validation warnings:', validation.errors);
     }
@@ -69,13 +65,13 @@ export async function POST(request: NextRequest) {
     return new NextResponse(content, {
       status: 200,
       headers: {
-        'Content-Type': contentType,
+        'Content-Type': 'application/octet-stream',
         'Content-Disposition': `attachment; filename="${filename}"`,
         'X-Part-Number': partNumber,
         'X-Part-Description': partInfo.description,
         'X-Macro-Name': macroInfo.name,
         'X-Triangle-Count': stlData.triangleCount.toString(),
-        'X-Format': format,
+        'X-Format': 'binary',
         'X-Bounding-Box': JSON.stringify(stlData.boundingBox)
       }
     });

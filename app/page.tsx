@@ -98,42 +98,19 @@ export default function HomePage() {
     }
   };
 
-  const handleEplanDownload = async (data: { 
-    partNumber: string; 
-    pat: string; 
-    format: 'ascii' | 'binary' 
-  }) => {
+  const handleEplanDownload = async (data: { partNumber: string }) => {
     setStatus('uploading');
     setMessage(`Searching for part: ${data.partNumber}...`);
 
     try {
-      // First, search for the part
-      setMessage('Verifying part exists...');
-      const searchResponse = await fetch('/api/eplan/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          partNumber: data.partNumber, 
-          pat: data.pat 
-        }),
-      });
-
-      if (!searchResponse.ok) {
-        const errorData = await searchResponse.json();
-        throw new Error(errorData.error || 'Part search failed');
-      }
-
-      const partInfo = await searchResponse.json();
-      setMessage(`Found: ${partInfo.description}`);
-
-      // Download and convert
+      // Download and convert directly
       setStatus('parsing');
       setMessage('Downloading 3D data from EPLAN...');
 
       const downloadResponse = await fetch('/api/eplan/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ partNumber: data.partNumber }),
       });
 
       if (!downloadResponse.ok) {
@@ -183,7 +160,7 @@ export default function HomePage() {
               E3D to STL Converter
             </h1>
             <p className="text-lg text-gray-600">
-              Professional 3D model conversion for EPLAN files
+              Data portal API browser
             </p>
           </div>
 
@@ -195,11 +172,10 @@ export default function HomePage() {
                   setMode('file');
                   resetState();
                 }}
-                className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-                  mode === 'file'
+                className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${mode === 'file'
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 📁 Upload E3D File
               </button>
@@ -208,11 +184,10 @@ export default function HomePage() {
                   setMode('eplan');
                   resetState();
                 }}
-                className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-                  mode === 'eplan'
+                className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${mode === 'eplan'
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 🌐 Download from EPLAN
               </button>
@@ -272,7 +247,7 @@ export default function HomePage() {
                   <div className="flex items-start space-x-3">
                     <div className="text-yellow-600 mt-0.5">⚠️</div>
                     <div>
-                      <p className="font-medium text-yellow-900">PAT Token Required</p>
+                      <p className="font-medium text-yellow-900">PAT Token</p>
                       <p className="text-sm text-yellow-700 mt-1">
                         You need a valid EPLAN Data Portal Personal Access Token (PAT) to download 3D data.
                         Get yours from the EPLAN Data Portal settings.
@@ -298,7 +273,7 @@ export default function HomePage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Conversion Results
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-green-50 p-4 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">
@@ -306,14 +281,14 @@ export default function HomePage() {
                   </div>
                   <div className="text-sm text-green-700">Triangles</div>
                 </div>
-                
+
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">
                     {result.fileSize ? `${(result.fileSize / 1024).toFixed(1)} KB` : 'N/A'}
                   </div>
                   <div className="text-sm text-blue-700">File Size</div>
                 </div>
-                
+
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600">STL</div>
                   <div className="text-sm text-purple-700">Format</div>
@@ -358,7 +333,7 @@ export default function HomePage() {
           {/* Footer */}
           <div className="text-center mt-12 pt-8 border-t border-gray-200">
             <p className="text-gray-500 text-sm">
-              Professional E3D to STL conversion powered by Next.js and TypeScript
+              E3D to STL conversion made by Covaga
             </p>
           </div>
         </div>

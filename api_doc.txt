@@ -1,0 +1,947 @@
+Data Portal API
+ 1.0.0 
+OAS 3.0
+Documentation of the API for accessing and maintaining Parts Data for P8
+
+Authorization
+Usage of Bearer token
+Header: Authorization
+
+Value: Bearer {TOKEN}
+
+Standard browser authentication is required (user interaction). Afterwards the token received in the UI can be used. The token has a short lifetime so more frequent user interaction will be required. It is also possible to implement a mechanism for token renewal.
+
+Usage of Personal Access Token
+Header: Authorization
+
+Value: Bearer PAT:{PAT_TOKEN}
+
+A Personal Access Token (PAT) can be generated in the ePulse user profile. The PAT can be generated for a specific period of time. When the PAT expires, it needs to be replaced by a new one. The PAT needs to be generated specifically for the Data Portal. It's not possible to generate a PAT for the ePulse Community - it must be assigned to any other organisation.
+
+
+--
+Catalog
+
+
+GET
+/eplan_catalog_entries
+Returns product top groups list.
+
+This function returns facet of eplan catalog entries.
+
+Parameters
+
+Name	Description
+sort
+(query)
+Available sort fields: id, name
+
+sort
+fuzziness
+(query)
+Fuzziness works only with search parameter.
+
+fuzziness
+filter[catalog_eplan]
+(query)
+When catalog UID is provided returns all child nodes below specified UID. If UID is lowest level in the tree will return empty list.
+
+filter[catalog_eplan]
+
+--
+
+Configurators/Selectors
+
+
+GET
+/configurators/selectors
+Get list of selectors
+
+
+This controller returns list of all available selectors.
+
+Parameters
+
+No parameters
+
+GET
+/configurators/selectors/{id}
+Get list of selectors
+
+
+This controller returns list of all available selectors.
+
+Parameters
+
+Name	Description
+id *
+string
+(path)
+id
+
+GET
+/configurators/configurators
+Get list of configurators
+
+
+This controller returns list of all available selectors.
+
+Parameters
+
+Name	Description
+fuzziness
+(query)
+Fuzziness works only with search parameter.
+
+fuzziness
+
+
+POST
+/configurators/parts
+Add items from a selector or configurator to user's download list
+
+
+This controller receives data from selector or configurator.
+
+Example of selector request
+ {
+     "data": {
+         "type": "selectorrequest",
+         "attributes": {
+             "token": "abc.def.ghi",
+             "parts": [
+                 {
+                     "quantity": 15,
+                     "description": "description for first item",
+                     "part": {
+                         "P_ARTICLE_PARTNR": "EKF.apd2-24-32"
+                     }
+                 },
+                 {
+                     "quantity": 10,
+                     "description": "description for second item",
+                     "part": {
+                         "P_ARTICLE_PARTNR": "PAN.CDLB4"
+                     }
+                 }
+             ]
+         }
+     }
+ }
+Example of configurator request
+ {
+     "data": {
+         "type": "configuratorrequest",
+         "attributes": {
+             "token": "jwt.tok.en",
+             "root": "Root part number",
+             "parts": [
+                 {
+                     "quantity": 1,
+                     "description": "Description for item(s) in download list",
+                     "part": {
+                         "P_ARTICLE_PARTNR": "Unique part number",
+                         "P_ARTICLE_ORDERNR": "Part's order number",
+                         "P_ARTICLE_TYPENR": "Part's type number",
+                         "P_ARTICLE_DESCR1": "Description 1",
+                         "P_ARTICLE_DESCR2": "Description 2",
+                         "P_ARTICLE_DESCR3": "Description 3",
+                         "P_ARTICLE_NOTE": "Part's note"
+                     },
+                     "variant": {
+                         "P_ARTICLE_CABLETYPE": "",
+                         "P_ARTICLE_VOLTAGE": "",
+                         "P_ARTICLE_CABLEWIRECOUNT": "",
+                         "P_ARTICLE_CABLEWIRECROSSSECTION": "",
+                         "P_ARTICLE_WIRECROSSSECTION_UNIT": "",
+                         "P_ARTICLE_CONNECTIONCROSSSECTION": "",
+                         "P_ARTICLE_PINCOUNT": "",
+                         "P_ARTICLE_ELECTRICALPOWER": "",
+                         "P_ARTICLE_ELECTRICAL_POWER": "",
+                         "P_ARTICLE_HOLDINGPOWER": "",
+                         "P_ARTICLE_VOLTAGETYPE": "",
+                         "P_ARTICLE_AWGFROM": "",
+                         "P_ARTICLE_AWGTILL": "",
+                         "P_ARTICLE_CROSSSECTIONFROM": "",
+                         "P_ARTICLE_CROSSSECTIONTILL": "",
+                         "P_ARTICLE_CURRENTCSA": "",
+                         "P_ARTICLE_CURRENTIEC": "",
+                         "P_ARTICLE_CURRENTUL": "",
+                         "P_ARTICLE_ELECTRICALCURRENT": "",
+                         "P_ARTICLE_VOLTAGECSA": "",
+                         "P_ARTICLE_VOLTAGEIEC": "",
+                         "P_ARTICLE_VOLTAGEUL": "",
+                         "P_ARTICLE_PLCISBUSCOUPLER": "",
+                         "P_ARTICLE_PLCISBUSDISTRIBUTOR": "",
+                         "P_ARTICLE_PLSISCPU": "",
+                         "P_ARTICLE_PLCISPOWERSUPPLY": ""
+                     }
+                 }
+             ]
+         }
+     }
+ }
+Parameters
+
+No parameters
+
+Responses
+Code	Description	Links
+201	
+Parts have been added to basket.
+
+No links
+400	
+Bad request.
+
+No links
+401	
+Invalid token.
+
+No links
+404	
+Part is not found or it's not configurable.
+
+No links
+409	
+Basket maximum size reached.
+
+No links
+422	
+At least one of required fields is missing or invalid.
+
+No links
+
+
+GET
+/token/adapter
+Generates signed JWT token to authorize adapter's requests.
+
+
+Parameters
+
+No parameters
+
+
+GET
+/configurators/token
+Generates signed JWT token to authorize adapter's requests.
+
+
+Parameters
+
+No parameters
+
+
+--
+
+Download List
+
+GET
+/basketitems
+Get download list items.
+
+This function returns list of basket items with parts or userparts.
+
+In case of removed parts in download list the following parts is added to meta section
+"inactive_parts": {
+    "[userBasketItemId]": "[partNumber]",
+    "9479": "A-B.08GD3A-X-_"
+ }
+Parameters
+
+Name	Description
+sort
+(query)
+Available sort fields: part_number, order_number, type_number, download_count, manufacturer.short_name, manufacturer.long_name
+
+sort
+
+
+POST
+/basketitems
+Create item(s) in the download list.
+
+Example request body (single item)
+ {
+     "data": [{
+         "type": "basketitems",
+         "attributes": {
+             "count": 10,
+             "description": "description for item"
+         },
+         "relationships": {
+             "part": {
+                 "data": {
+                     "id": "1",
+                     "type": "parts"
+                 }
+             }
+         }
+     }]
+ }
+Example request body (multiple items)
+ {
+     "data": [{
+         "type": "basketitems",
+         "attributes": {
+             "count": 10,
+             "description": "description for item 1"
+         },
+         "relationships": {
+             "part": {
+                 "data": {
+                     "id": "1",
+                     "type": "parts"
+                 }
+             }
+         }
+     },{
+         "type": "basketitems",
+         "attributes": {
+             "count": 6,
+             "description": "description for item 2"
+         },
+         "relationships": {
+             "part": {
+                 "data": {
+                     "id": "1",
+                     "type": "parts"
+                 }
+             }
+         }
+     }]
+ }
+ 
+ 
+DELETE
+/basketitems
+Delete items.
+
+Example request body
+ {
+     "data": [{
+         "type": "basketitems",
+         "id": "12"
+     },{
+         "type": "basketitems",
+         "id": "5"
+     }]
+ }
+Parameters
+
+No parameters
+
+
+ PATCH
+/basketitems
+Update items.
+
+Example request body
+ {
+     "data": [{
+         "type": "basketitems",
+         "id": "1",
+         "attributes": {
+             "count": 12,
+             "description": "description for item 1"
+         },
+         "relationships": {
+             "part": {
+                 "data": {
+                     "id": "1",
+                     "type": "parts"
+                 }
+             }
+         }
+     },{
+         "type": "basketitems",
+         "id": "2",
+         "attributes": {
+             "count": 4,
+             "description": "description for item 2"
+         },
+         "relationships": {
+             "part": {
+                 "data": {
+                     "id": "1",
+                     "type": "parts"
+                 }
+             }
+         }
+     }]
+ }
+Parameters
+
+No parameters
+
+
+DELETE
+/basketitems/{id}
+Delete item.
+
+Parameters
+
+Name	Description
+id *
+string
+(path)
+id
+
+PATCH
+/basketitems/{id}
+Update item.
+
+Example request body
+ {
+     "data": {
+         "type": "basketitems",
+         "id": 4,
+         "attributes": {
+             "count": 10,
+             "description": "description"
+         },
+         "relationships": {
+             "part": {
+                 "data": {
+                     "id": "1",
+                     "type": "parts"
+                 }
+             }
+         }
+     }
+ }
+Parameters
+
+Name	Description
+id *
+string
+(path)
+id
+
+
+
+GET
+/download/commercial_data/basket
+Returns Commercial Data CSV for user basket
+
+Success response
+ HTTP/1.1 200 OK
+ Content-Disposition: attachment; filename="commercial_data.csv"
+ Content-Type: text/csv; charset=UTF-8
+Parameters
+
+No parameters
+
+
+
+POST
+/download/commercial_data/basket
+Returns Commercial Data CSV for selected basket/download items
+
+Request
+ POST /download/commercial_data/basket HTTP/1.1
+ Authorization: Bearer ...
+ Content-Type: text/plain
+
+ BASKET_ITEM_ID_1,BASKET_ITEM_ID_2,BASKET_ITEM_ID_100
+Success response
+ HTTP/1.1 200 OK
+ Content-Disposition: attachment; filename="commercial_data.csv"
+ Content-Type: text/csv; charset=UTF-8
+Parameters
+
+No parameters
+
+GET
+/download/dxf_data/basket
+Returns Dxf Data for user basket. Generated filename is a MACRO_FILENAME.zip or EDataPortalDXF.zip for multiple files in DXF archive.
+
+Parameters
+
+No parameters
+
+Responses
+Code	Description	Links
+200	
+Returned when DXF is found
+
+No links
+400	
+Returned if request is invalid
+
+No links
+404	
+Returned when there are no parts with DXF's in the basket
+
+No links
+
+
+POST
+/download/dxf_data/basket
+Returns Dxf Data for selected basket items IDs. Generated filename is a MACRO_FILENAME.zip or EDataPortalDXF.zip for multiple files in DXF archive.
+
+Request
+ POST /download/dxf_data/basket HTTP/1.1
+ Authorization: Bearer ...
+ Content-Type: text/plain
+
+ BASKET_ITEM_ID_1,BASKET_ITEM_ID_2,BASKET_ITEM_ID_100
+Parameters
+
+No parameters
+-----
+Parts
+
+GET
+/download/commercial_data/part/{partId}
+Returns Commercial Data CSV file for a part
+
+Parameters
+
+Name	Description
+partId *
+string
+(path)
+partId
+Responses
+Code	Description	Links
+200	
+Returned when part is found.
+
+Headers:
+Name	Description	Type
+Content-Type	
+text/csv; charset=UTF-8
+
+Content-Disposition	
+attachment; filename=commercial_data.csv
+
+No links
+400	
+Request is invalid.
+
+No links
+404	
+Returned when part is not found..
+
+No links
+
+
+POST
+/download/commercial_data/part
+Returns Commercial Data CSV file for a list of parts
+
+Parameters
+
+No parameters
+
+Responses
+Code	Description	Links
+200	
+Returned when a part is found.
+
+Headers:
+Name	Description	Type
+Content-Type	
+text/csv; charset=UTF-8
+
+Content-Disposition	
+attachment; filename=commercial_data.csv
+
+No links
+400	
+Request is invalid.
+
+No links
+404	
+Returned when part is not found.
+
+No links
+
+
+GET
+/data_types
+Returns data type list including counts for each data type in the meta section.
+
+Parameters
+
+Name	Description
+fuzziness
+(query)
+Fuzziness works only with search parameter.
+
+fuzziness
+
+
+GET
+/download/dxf_data/part/{partId}
+Returns DXF file. Generated filename is a MACRO_FILENAME.zip or EDataPortalDXF.zip for multiple files in DXF archive.
+
+Parameters
+
+Name	Description
+partId *
+string
+(path)
+partId
+
+POST
+/download/dxf_data/part
+Returns DXF files. Generated filename is a MACRO_FILENAME.zip or EDataPortalDXF.zip for multiple files in DXF archive.
+
+Parameters
+
+No parameters
+
+
+GET
+/download/e3d_data/{macroVariantId}
+Returns E3D file. Generated filename is a MACRO_VARIANT_FILENAME.e3d
+
+Parameters
+
+Name	Description
+macroVariantId *
+string
+(path)
+macroVariantId
+Responses
+Code	Description	Links
+200	
+Returned when E3D is found
+
+No links
+404	
+Returned when E3D is not available (no dxf data type, file not found, missing macro, or macro does not have correct reptype)
+
+No links
+
+GET
+/macro_variants/{macroVariantId}
+Returns macro variant for a given ID
+
+Parameters
+
+Name	Description
+macroVariantId *
+string
+(path)
+macroVariantId
+Responses
+Code	Description	Links
+200	
+Returned when macro variant is found
+
+No links
+400	
+Returned if request is invalid
+
+No links
+404	
+Returned when macro variant or part is not found
+
+No links
+
+
+GET
+/macros/{macroId}
+Macros API
+
+Parameters
+
+Name	Description
+macroId *
+string
+(path)
+macroId
+
+
+GET
+/manufacturers
+Returns manufacturer list
+
+This function returns facet of manufacturers.
+
+Parameters
+
+Name	Description
+sort
+(query)
+Available sort fields: short_name, long_name, website
+
+sort
+fuzziness
+(query)
+Fuzziness works only with search parameter.
+
+fuzziness
+
+
+GET
+/parts
+Get parts
+
+
+This function returns list of parts.
+
+Named array parameter
+OpenApi Specification doesn't support named array parameter (arr[param]=value). They are added as 'normal' parameter (filter[manufacturer], filter[features]...) but without filter operator because it would required add for each (filter[x]) each operator (filter[x][op]) and produce a lot of parameters.
+
+Available filter operators
+When used with a single value, additional operators can be specified for filters using the following format
+filter[eplan_data_standard][ge]=1
+Where the above means eplan_data_standard>=1
+
+The operator names are as follows:
+gt, lt = Greater Than, Less Than
+ge, le = Greater Than or Equal, Less Than or Equal
+eq, ne = Equal, Not Equal (eq is the default, but can be specified for completeness)
+Example of use
+ /parts?filter[manufacturer]=RIT&sort=manufacturer.short_name&page[offset]=0&page[limit]=10
+ /parts?filter[manufacturer]=RIT&sort=-part_number&page[offset]=0&page[limit]=10  
+ 
+ 
+ 
+Parameters
+
+Name	Description
+sort
+(query)
+Available sort fields: part_number, order_number, type_number, download_count, manufacturer.short_name, manufacturer.long_name
+
+sort
+search
+(query)
+custom query
+
+search
+fuzziness
+(query)
+Fuzziness works only with search parameter.
+
+fuzziness
+page[offset]
+(query)
+page[offset]
+page[limit]
+(query)
+page[limit]
+filter[manufacturer]
+(query)
+manufacturer's short name e.g. BLO
+
+filter[manufacturer]
+filter[catalog_eplan ]
+(query)
+single numeric UID string 0200030004
+
+filter[catalog_eplan ]
+filter[catalog_manufacturer ]
+(query)
+single alpha-numeric UID string L1_12345
+
+filter[catalog_manufacturer ]
+filter[catalog_eclass]
+(query)
+single numeric UID string 11223344
+
+filter[catalog_eclass]
+filter[features]
+(query)
+(commercial_data, function_template, logic_macro,2d_graphical_data, connection_point_pattern, drilling_pattern,3d_graphical_data, dxf_data)
+
+filter[features]
+filter[configurator]
+(query)
+id of configurator, single valu
+
+filter[configurator]
+filter[eplan_data_standard]
+(query)
+version of EDS i.e. v1.0 or directly the integer value
+
+filter[eplan_data_standard]
+
+
+POST
+/parts
+Returns parts list for given ids
+
+This function returns list of parts.
+
+Request
+ POST /parts HTTP/1.1
+ Authorization: Bearer ...
+ Content-Type: text/plain
+
+ PART_ID_1,PART_ID_2,PART_ID_100
+Each part number is separated by comma in the body
+
+Parameters
+
+No parameters
+
+
+GET
+/parts/{id}
+Returns part details
+
+Parameters
+
+Name	Description
+id *
+string
+(path)
+id
+
+
+GET
+/standards
+Returns standards list including counts for each standard in the meta section.
+
+Parameters
+
+Name	Description
+fuzziness
+(query)
+Fuzziness works only with search parameter.
+
+fuzziness
+-----
+
+Schemas
+
+Macro{
+description:	
+type: macros
+
+name	string
+preview	Preview{
+description:	
+Preview entity
+
+96	string
+Resource URL for 96x96px size
+
+512	string
+Resource URL for 512x512px size
+
+}
+macro_variants	[MacroVariant{
+description:	
+type: macro_variants
+
+representation_type	integer
+variant	integer
+name	string
+description	string
+preview	Preview{
+description:	
+Preview entity
+
+96	string
+Resource URL for 96x96px size
+
+512	string
+Resource URL for 512x512px size
+
+}
+}]
+}
+
+
+
+BasketItem{
+description:	
+type: basketitems
+
+description	string
+count	integer
+part	Part{
+description:	
+type: parts
+
+part_number	[...]
+type_number	[...]
+order_number	[...]
+designation	{...}
+description	{...}
+download_count	[...]
+version	[...]
+part_type	[...]
+identcode	[...]
+basketable	[...]
+deviceplaceable	[...]
+update_date	[...]
+manufacturer	Manufacturer{...}
+product_top_group	EplanCatalog{...}
+product_group	EplanCatalog{...}
+product_sub_group	EplanCatalog{...}
+eclass_level1	EClassCatalog{...}
+eclass_level2	EClassCatalog{...}
+eclass_level3	EClassCatalog{...}
+eclass_level4	EClassCatalog{...}
+data_types	[...]
+graphic_macro	Macro{...}
+group_symbol_macro	Macro{...}
+picture_file	PictureFile{...}
+accessories	[...]
+dependent_parts	[...]
+eplan_data_standard	[...]
+}
+}
+
+Part{
+description:	
+type: parts
+
+part_number	[...]
+type_number	[...]
+order_number	[...]
+designation	{...}
+description	{...}
+download_count	[...]
+version	[...]
+part_type	[...]
+identcode	[...]
+basketable	[...]
+deviceplaceable	[...]
+update_date	[...]
+manufacturer	Manufacturer{...}
+product_top_group	EplanCatalog{...}
+product_group	EplanCatalog{...}
+product_sub_group	EplanCatalog{...}
+eclass_level1	EClassCatalog{...}
+eclass_level2	EClassCatalog{...}
+eclass_level3	EClassCatalog{...}
+eclass_level4	EClassCatalog{...}
+data_types	[...]
+graphic_macro	Macro{...}
+group_symbol_macro	Macro{...}
+picture_file	PictureFile{...}
+accessories	[...]
+dependent_parts	[...]
+eplan_data_standard	[...]
+}
+
+
+PictureFile{
+description:	
+type: picturefile, id: FILE_PATH"
+
+preview	Preview{
+description:	
+Preview entity
+
+96	string
+Resource URL for 96x96px size
+
+512	string
+Resource URL for 512x512px size
+
+}
+}
+
+
+

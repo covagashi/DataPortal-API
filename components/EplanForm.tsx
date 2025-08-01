@@ -5,18 +5,16 @@ import { useState } from 'react';
 import { clsx } from 'clsx';
 
 interface EplanFormProps {
-  onSubmit: (data: { partNumber: string; pat: string; format: 'ascii' | 'binary' }) => void;
+  onSubmit: (data: { partNumber: string }) => void;
   loading?: boolean;
 }
 
 export default function EplanForm({ onSubmit, loading = false }: EplanFormProps) {
   const [partNumber, setPartNumber] = useState('');
-  const [pat, setPat] = useState('');
-  const [format, setFormat] = useState<'ascii' | 'binary'>('ascii');
-  const [errors, setErrors] = useState<{ partNumber?: string; pat?: string }>({});
+  const [errors, setErrors] = useState<{ partNumber?: string }>({});
 
   const validateForm = (): boolean => {
-    const newErrors: { partNumber?: string; pat?: string } = {};
+    const newErrors: { partNumber?: string } = {};
 
     if (!partNumber.trim()) {
       newErrors.partNumber = 'Part number is required';
@@ -26,12 +24,6 @@ export default function EplanForm({ onSubmit, loading = false }: EplanFormProps)
       newErrors.partNumber = 'Part number contains invalid characters';
     }
 
-    if (!pat.trim()) {
-      newErrors.pat = 'PAT token is required';
-    } else if (pat.length < 10) {
-      newErrors.pat = 'PAT token too short';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -39,7 +31,7 @@ export default function EplanForm({ onSubmit, loading = false }: EplanFormProps)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit({ partNumber: partNumber.trim(), pat: pat.trim(), format });
+      onSubmit({ partNumber: partNumber.trim() });
     }
   };
 
@@ -70,69 +62,26 @@ export default function EplanForm({ onSubmit, loading = false }: EplanFormProps)
         )}
       </div>
 
-      <div>
-        <label htmlFor="pat" className="block text-sm font-medium text-gray-700 mb-1">
-          EPLAN PAT Token
-        </label>
-        <input
-          type="password"
-          id="pat"
-          value={pat}
-          onChange={(e) => setPat(e.target.value)}
-          placeholder="Your EPLAN Data Portal access token"
-          disabled={loading}
-          className={clsx(
-            'w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-            {
-              'border-red-300': errors.pat,
-              'border-gray-300': !errors.pat,
-              'bg-gray-50 cursor-not-allowed': loading
-            }
-          )}
-        />
-        {errors.pat && (
-          <p className="mt-1 text-sm text-red-600">{errors.pat}</p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Output Format
-        </label>
-        <div className="flex space-x-4">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="ascii"
-              checked={format === 'ascii'}
-              onChange={(e) => setFormat(e.target.value as 'ascii' | 'binary')}
-              disabled={loading}
-              className="mr-2"
-            />
-            <span className="text-sm text-gray-700">ASCII STL</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="binary"
-              checked={format === 'binary'}
-              onChange={(e) => setFormat(e.target.value as 'ascii' | 'binary')}
-              disabled={loading}
-              className="mr-2"
-            />
-            <span className="text-sm text-gray-700">Binary STL</span>
-          </label>
+      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+        <div className="flex items-start space-x-3">
+          <div className="text-blue-600 mt-0.5">ℹ️</div>
+          <div>
+            <p className="font-medium text-blue-900">Output Format</p>
+            <p className="text-sm text-blue-700 mt-1">
+              Files will be downloaded as binary STL format for optimal file size and loading performance.
+            </p>
+          </div>
         </div>
       </div>
 
       <button
         type="submit"
-        disabled={loading || !partNumber.trim() || !pat.trim()}
+        disabled={loading || !partNumber.trim()}
         className={clsx(
           'w-full py-2 px-4 rounded-md font-medium transition-colors',
           {
-            'bg-blue-600 text-white hover:bg-blue-700': !loading && partNumber.trim() && pat.trim(),
-            'bg-gray-300 text-gray-500 cursor-not-allowed': loading || !partNumber.trim() || !pat.trim()
+            'bg-blue-600 text-white hover:bg-blue-700': !loading && partNumber.trim(),
+            'bg-gray-300 text-gray-500 cursor-not-allowed': loading || !partNumber.trim()
           }
         )}
       >
