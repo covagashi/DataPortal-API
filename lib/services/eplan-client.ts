@@ -42,10 +42,9 @@ export class EplanClient {
         'Authorization': `Bearer PAT:${pat}`,
         'Content-Type': 'application/json'
       },
-      timeout: 30000, // 30 seconds
+      timeout: 30000,
     });
 
-    // Add response interceptor for error handling
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
@@ -145,7 +144,9 @@ export class EplanClient {
 
     // Step 2: Get part details
     const partResponse = await this.getPartInfo(partInfo.id);
-    if (!partResponse.data.relationships.graphic_macro) {
+    
+    // Check if part has graphic_macro
+    if (!partResponse.data.relationships?.graphic_macro?.data?.id) {
       throw new EplanApiError('No graphic macro found for this part', 404);
     }
 
@@ -179,8 +180,8 @@ export class EplanClient {
     }
 
     // Check if preview ID ends with '3d.ema'
-    const previewId = macroData.relationships.preview.data.id;
-    if (previewId.toLowerCase().endsWith('3d.ema')) {
+    const previewId = macroData.relationships.preview?.data?.id;
+    if (previewId && previewId.toLowerCase().endsWith('3d.ema')) {
       return true;
     }
 
@@ -194,7 +195,6 @@ export class EplanClient {
   }
 
   public static sanitizePartNumber(partNumber: string): string {
-    // Remove invalid characters and normalize
     return partNumber
       .trim()
       .replace(/[<>:"/\\|?*]/g, '')
@@ -210,7 +210,6 @@ export class EplanClient {
       return { isValid: false, error: 'Part number is too long (max 100 characters)' };
     }
 
-    // Basic pattern validation (adjust as needed)
     const validPattern = /^[A-Za-z0-9_\-\.]+$/;
     if (!validPattern.test(partNumber)) {
       return { isValid: false, error: 'Part number contains invalid characters' };
